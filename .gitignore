@@ -29,3 +29,6 @@ __pycache__/
 
 # Database dumps
 *.sql
+
+
+dev_cheatsheet.txt
