@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 function App() {
   const [metrics, setMetrics] = useState({
@@ -6,12 +14,21 @@ function App() {
     avg_latency: 0,
     login_events: 0,
   });
+  const [history, setHistory] = useState([]);
 
   async function fetchMetrics() {
     try {
       const res = await fetch("http://localhost:4000/metrics/realtime");
       const data = await res.json();
       setMetrics(data);
+
+      setHistory((prev) => [
+      ...prev.slice(-20),
+      {
+        time: new Date().toLocaleTimeString(),
+        requests: data.requests_per_min,
+      },
+    ]);
     } catch (err) {
       console.error("Failed to fetch metrics", err);
     }
@@ -31,6 +48,25 @@ function App() {
         <Card title="Requests / Min" value={metrics.requests_per_min} />
         <Card title="Avg Latency (ms)" value={metrics.avg_latency} />
         <Card title="Login Events" value={metrics.login_events} />
+        <h2 style={{ marginTop: "60px" }}>📈 Traffic Over Time</h2>
+
+        <LineChart
+          width={700}
+          height={300}
+          data={history}
+          style={{ margin: "0 auto" }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="requests"
+            stroke="#8884d8"
+            strokeWidth={2}
+          />
+        </LineChart>
       </div>
     </div>
   );
