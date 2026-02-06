@@ -15,6 +15,21 @@ function App() {
     login_events: 0,
   });
   const [history, setHistory] = useState([]);
+  const [prediction, setPrediction] = useState(null);
+
+
+  async function fetchPrediction() {
+  try {
+    const res = await fetch("http://localhost:5000/predict/traffic", {
+      method: "POST",
+    });
+    const data = await res.json();
+    setPrediction(data);
+  } catch (err) {
+    console.error("Prediction fetch failed", err);
+  }
+}
+
 
   async function fetchMetrics() {
     try {
@@ -36,7 +51,11 @@ function App() {
 
   useEffect(() => {
     fetchMetrics();
-    const interval = setInterval(fetchMetrics, 5000);
+    fetchPrediction();
+    const interval = setInterval(() => {
+    fetchMetrics();
+    fetchPrediction();
+  }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -48,6 +67,11 @@ function App() {
         <Card title="Requests / Min" value={metrics.requests_per_min} />
         <Card title="Avg Latency (ms)" value={metrics.avg_latency} />
         <Card title="Login Events" value={metrics.login_events} />
+        <Card
+  title="🔮 Predicted Events (Next 5 min)"
+  value={prediction ? prediction.predicted_events : "Loading..."}
+/>
+
         <h2 style={{ marginTop: "60px" }}>📈 Traffic Over Time</h2>
 
         <LineChart
